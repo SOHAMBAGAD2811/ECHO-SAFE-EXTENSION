@@ -50,18 +50,9 @@ git clone https://github.com/SOHAMBAGAD2811/Dark-Pattern-Detector-Extension.git
 cd Dark-Pattern-Detector-Extension
 ```
 
-### 2. Get a Gemini API Key
+### 2. Configure the Backend URL (Optional)
 
-- Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
-- Create a new API key
-
-### 3. Add your API key
-
-Open `popup.js` and replace the API key on **line 2**:
-
-```js
-const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE';
-```
+By default, the extension points to the deployed companion app at `https://echo-safe-one.vercel.app`. If you want to run the backend locally, you can update the `DASHBOARD_URL` in `popup.js` and `content.js`.
 
 ### 4. Load the extension in Chrome
 
@@ -80,13 +71,15 @@ Navigate to any e-commerce website (Amazon, Flipkart, etc.) and click the **Dark
 
 ### `DASHBOARD_URL`
 
-Both `popup.js` and `content.js` reference a `DASHBOARD_URL` constant that points to the companion web dashboard:
+### `DASHBOARD_URL`
+
+Both `popup.js` and `content.js` reference a `DASHBOARD_URL` constant that points to the companion web dashboard where the API requests are routed:
 
 ```js
-const DASHBOARD_URL = 'http://localhost:3000';
+const DASHBOARD_URL = 'https://echo-safe-one.vercel.app';
 ```
 
-Update this to your deployed dashboard URL when moving to production.
+Change this to `http://localhost:3000` only if you are running the companion app locally for development.
 
 ---
 
@@ -127,7 +120,7 @@ This extension works alongside the **Dark Pattern Dashboard** — a Next.js web 
 
 👉 **[Dark-Pattern-Unnamed-App](https://github.com/SOHAMBAGAD2811/Dark-Pattern-Unnamed-App)**
 
-Make sure the companion app is running (default: `http://localhost:3000`) for the "Open Full Dashboard" feature to work.
+Make sure the companion app is running (or use the deployed Vercel link `https://echo-safe-one.vercel.app`) for the "Open Full Dashboard" feature to work.
 
 ---
 
