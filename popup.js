@@ -24,12 +24,17 @@ scanBtn.addEventListener('click', async () => {
     lastScanUrl = tab.url;
 
     // Step 2: Inject a script to scrape visible text from the page
-    const [{result: pageText}] = await chrome.scripting.executeScript({
+    const [{result: pageData}] = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      func: () => document.body.innerText
+      func: () => {
+         return {
+            text: document.body.innerText,
+            htmlChunk: document.documentElement.outerHTML.slice(0, 150000) // First 150KB usually contains meta tags, JSON-LD, and price tags
+         };
+      }
     });
 
-    if (!pageText || pageText.length < 50) {
+    if (!pageData.text || pageData.text.length < 50) {
       throw new Error('Could not read page content. Try on a product page.');
     }
 
@@ -41,7 +46,8 @@ scanBtn.addEventListener('click', async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         url: lastScanUrl,
-        content: pageText.slice(0, 15000)
+        content: pageData.text.slice(0, 15000), // Just the text for Gemini
+        html: pageData.htmlChunk // HTML for regex parsing (price, image)
       })
     });
 
