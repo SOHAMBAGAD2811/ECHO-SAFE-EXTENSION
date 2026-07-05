@@ -1,5 +1,4 @@
 // popup.js
-const GEMINI_API_KEY = "AIzaSyBkxRtHnc644aiUmWKQ8Uq9OIm55pfsEQk";
 // TODO: Update this to your Vercel deployment URL after deploying (e.g. https://your-app.vercel.app)
 const DASHBOARD_URL = "http://localhost:3000";
 
@@ -35,105 +34,38 @@ scanBtn.addEventListener('click', async () => {
       throw new Error('Could not read page content. Try on a product page.');
     }
 
-    statusEl.textContent = 'Sending to Gemini 3.5 Flash...';
+    statusEl.textContent = 'Analyzing with AI...';
 
-    // Step 3: Call Gemini directly
-    const cleanContent = pageText.slice(0, 15000);
-    const prompt = `
-      You are a strict, objective consumer protection AI. Analyze this e-commerce website text.
-      
-      CRITICAL INSTRUCTION: You MUST return a single, valid JSON object exactly matching the schema below. DO NOT add any extra fields. DO NOT omit any fields. Every field is REQUIRED.
-      
-      REQUIRED JSON SCHEMA:
-      {
-        "price": "The product price with currency symbol (e.g. Rs. 500 or $29.99)",
-        "findings": [
-          {
-            "type": "Dark Pattern Name (e.g. Drip Pricing, Urgency, Hidden Costs, Confirm Shaming, Forced Continuity)",
-            "severity": "high or medium or low",
-            "originalText": "Exact quote from the website text that is deceptive",
-            "translation": "Plain English explanation of why this is manipulative",
-            "advice": "What the user should do about it"
-          }
-        ],
-        "ethics_score": 50,
-        "ethics_transparency": "1-2 sentence assessment of pricing and policy transparency",
-        "ethics_sustainability": "1-2 sentence assessment of environmental practices",
-        "ethics_labor": "1-2 sentence assessment of labor/supply chain practices",
-        "alternative_1_name": "Name of a more ethical alternative product or brand",
-        "alternative_1_url": "URL to search for this alternative",
-        "alternative_1_reason": "Why this is a better choice",
-        "alternative_2_name": "Name of another ethical alternative",
-        "alternative_2_url": "URL to search for this alternative",
-        "alternative_2_reason": "Why this is a better choice"
-      }
-      
-      RULES:
-      - If you find NO dark patterns, return an EMPTY array for findings: []
-      - ethics_score must be an integer from 0 to 100
-      - Be specific in originalText — quote actual text from the page
-      - severity: "high" = actively deceptive, "medium" = misleading, "low" = minor concern
-      
-      Website URL: ${lastScanUrl}
-      Website Text:
-      ${cleanContent}
-    `;
+    // Step 3: Send to our Vercel API (which calls Gemini server-side — API key stays safe)
+    const apiRes = await fetch(`${DASHBOARD_URL}/api/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: lastScanUrl,
+        content: pageText.slice(0, 15000)
+      })
+    });
 
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: "application/json" }
-        })
-      }
-    );
-
-    if (!geminiRes.ok) {
-      const errBody = await geminiRes.text();
-      throw new Error(`Gemini API error ${geminiRes.status}: ${errBody.slice(0, 200)}`);
+    if (!apiRes.ok) {
+      const errBody = await apiRes.text();
+      throw new Error(`API error ${apiRes.status}: ${errBody.slice(0, 200)}`);
     }
 
-    const geminiData = await geminiRes.json();
-
-    statusEl.textContent = 'Parsing AI response...';
-
-    const rawJson = geminiData.candidates[0].content.parts[0].text;
-    const parsed = JSON.parse(rawJson);
-
-    // Reconstruct details
-    lastScanDetails = {
-      price: parsed.price || 'Check Site',
-      title: tab.title || 'Scanned Page',
-      image: tab.favIconUrl || '',
-      aiFindings: (parsed.findings || []).filter(f => f.type && f.originalText),
-      ethics: parsed.ethics_score !== undefined ? {
-        score: Number(parsed.ethics_score) || 0,
-        transparency: parsed.ethics_transparency || 'N/A',
-        sustainability: parsed.ethics_sustainability || 'N/A',
-        labor: parsed.ethics_labor || 'N/A'
-      } : null,
-      alternatives: []
-    };
-
-    if (parsed.alternative_1_name) {
-      lastScanDetails.alternatives.push({
-        name: parsed.alternative_1_name,
-        url: parsed.alternative_1_url,
-        reason: parsed.alternative_1_reason
-      });
-    }
-    if (parsed.alternative_2_name) {
-      lastScanDetails.alternatives.push({
-        name: parsed.alternative_2_name,
-        url: parsed.alternative_2_url,
-        reason: parsed.alternative_2_reason
-      });
-    }
+    const data = await apiRes.json();
+    const details = data.details;
 
     statusEl.textContent = '';
+
+    // Reconstruct details for rendering
+    lastScanDetails = {
+      price: details.price || 'Check Site',
+      title: details.title || tab.title || 'Scanned Page',
+      image: details.image || tab.favIconUrl || '',
+      aiFindings: details.aiFindings || [],
+      ethics: details.ethics || null,
+      alternatives: details.alternatives || []
+    };
+
     renderResults(lastScanDetails);
 
   } catch (err) {
