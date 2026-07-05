@@ -1,6 +1,5 @@
 // content.js
-// TODO: Update DASHBOARD_URL to the deployed URL when moving to production
-const DASHBOARD_URL = 'http://localhost:3000';
+const DASHBOARD_URL = 'https://echo-safe-one.vercel.app';
 let overlay = null;
 
 function createOverlay() {

@@ -1,6 +1,5 @@
 // popup.js
-// TODO: Update this to your Vercel deployment URL after deploying (e.g. https://your-app.vercel.app)
-const DASHBOARD_URL = "http://localhost:3000";
+const DASHBOARD_URL = "https://echo-safe-one.vercel.app";
 
 const scanBtn = document.getElementById('scanBtn');
 const statusEl = document.getElementById('status');
