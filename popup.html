@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dark Pattern Detector</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 400px;
+      min-height: 200px;
+      max-height: 600px;
+      overflow-y: auto;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #fafafa;
+      color: #111;
+    }
+
+    .header {
+      background: #111;
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header h1 { font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    .header .logo { font-size: 24px; }
+
+    .scan-btn {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 16px auto;
+      padding: 14px;
+      background: #111;
+      color: white;
+      border: 3px solid #111;
+      border-radius: 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .scan-btn:hover { background: #333; }
+    .scan-btn:disabled {
+      background: #888;
+      border-color: #888;
+      cursor: wait;
+    }
+
+    .status {
+      text-align: center;
+      padding: 8px 20px;
+      font-weight: 700;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .results { padding: 0 16px 16px; }
+
+    .finding-card {
+      border: 3px solid #111;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      background: white;
+      box-shadow: 4px 4px 0px 0px #111;
+    }
+    .finding-card.high { border-color: #dc2626; box-shadow: 4px 4px 0px 0px #dc2626; background: #fef2f2; }
+    .finding-card.medium { border-color: #d97706; box-shadow: 4px 4px 0px 0px #d97706; background: #fffbeb; }
+    .finding-card.low { border-color: #2563eb; box-shadow: 4px 4px 0px 0px #2563eb; background: #eff6ff; }
+
+    .finding-card h3 {
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .badge.high { background: #fca5a5; color: #7f1d1d; }
+    .badge.medium { background: #fde68a; color: #78350f; }
+    .badge.low { background: #bfdbfe; color: #1e3a5f; }
+
+    .finding-card p { font-size: 12px; font-weight: 600; color: #374151; line-height: 1.5; margin-top: 6px; }
+    .finding-card code { font-size: 11px; color: #db2777; background: #fdf2f8; padding: 2px 6px; border-radius: 4px; word-break: break-all; }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 900;
+      text-transform: uppercase;
+      padding: 12px 16px 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ethics-bar {
+      background: white;
+      border: 3px solid #111;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 4px 4px 0px 0px #111;
+    }
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .score-circle {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      border: 4px solid #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .score-circle.good { background: #dcfce7; color: #166534; }
+    .score-circle.mid { background: #fef9c3; color: #854d0e; }
+    .score-circle.bad { background: #fef2f2; color: #991b1b; }
+
+    .ethics-detail { font-size: 12px; font-weight: 600; color: #374151; line-height: 1.5; }
+    .ethics-label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #9ca3af; margin-top: 8px; }
+
+    .dashboard-btn {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 4px auto 16px;
+      padding: 12px;
+      background: #2563eb;
+      color: white;
+      border: 3px solid #1d4ed8;
+      border-radius: 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .dashboard-btn:hover { background: #1d4ed8; }
+
+    .clear-card {
+      text-align: center;
+      padding: 24px;
+      background: #f0fdf4;
+      border: 3px solid #16a34a;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      box-shadow: 4px 4px 0px 0px #16a34a;
+    }
+    .clear-card .icon { font-size: 36px; margin-bottom: 8px; }
+    .clear-card h3 { font-size: 16px; font-weight: 900; color: #166534; }
+    .clear-card p { font-size: 12px; font-weight: 600; color: #15803d; margin-top: 4px; }
+
+    .error-card {
+      text-align: center;
+      padding: 20px;
+      background: #fef2f2;
+      border: 3px solid #dc2626;
+      border-radius: 12px;
+      margin: 0 16px 12px;
+      box-shadow: 4px 4px 0px 0px #dc2626;
+    }
+    .error-card h3 { font-size: 14px; font-weight: 900; color: #991b1b; margin-bottom: 4px; }
+    .error-card p { font-size: 12px; font-weight: 600; color: #b91c1c; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="logo">🛡️</span>
+    <h1>Dark Pattern Detector</h1>
+  </div>
+
+  <button id="scanBtn" class="scan-btn">🔍 Scan This Page</button>
+  <div id="status" class="status"></div>
+  <div id="results" class="results"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
