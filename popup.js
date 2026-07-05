@@ -152,6 +152,20 @@ function renderResults(details) {
     `;
   }
 
+  // Alternatives
+  if (details.alternatives && details.alternatives.length > 0) {
+    html += '<div class="section-title">🔄 Better Alternatives</div>';
+    details.alternatives.forEach(alt => {
+      html += `
+        <div class="finding-card low" style="border-color: #22c55e;">
+          <h3 style="color: #166534;">${alt.name}</h3>
+          <p>${alt.reason}</p>
+          <a href="${alt.url}" target="_blank" style="display:inline-block; margin-top:8px; color:#15803d; font-weight:bold; text-decoration:underline;">Visit Site ↗</a>
+        </div>
+      `;
+    });
+  }
+
   resultsEl.innerHTML = html;
 
   // Dashboard button — opens the full website which auto-scans independently
