@@ -153,7 +153,8 @@ function renderResults(details) {
   dashBtn.className = 'dashboard-btn';
   dashBtn.textContent = '📊 Open Full Dashboard';
   dashBtn.addEventListener('click', () => {
-    const dashUrl = `${DASHBOARD_URL}/?url=${encodeURIComponent(lastScanUrl)}&autoscan=true`;
+    const payload = JSON.stringify({ url: lastScanUrl, details: lastScanDetails });
+    const dashUrl = `${DASHBOARD_URL}/?from_ext=true#${encodeURIComponent(payload)}`;
     chrome.tabs.create({ url: dashUrl });
   });
   resultsEl.appendChild(dashBtn);
